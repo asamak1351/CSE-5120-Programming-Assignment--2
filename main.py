@@ -18,7 +18,9 @@ class solve_n_queen:
             self.queen_locations.append(i)
         #store the number of conflict for each queen
         self.queens_conflicts = []
+        #maximum number of neighbors
         self.max_neighbors = math.factorial(self.N_queens) / (2 * math.factorial(self.N_queens - 2))
+        #container to hold all possible paths to neighbors
         self.all_paths = []
         #computes all paths
         for a in range(0,self.N_queens-1):
@@ -38,9 +40,7 @@ class solve_n_queen:
                 num_conflicts += 1
         return num_conflicts
 
-    #queens_sorted_by_greatest_conflicts
-    # returns the indices and number of conflict,
-    # and sorted by greatest number of conflicts
+    # return an array the hold the number of conflict for each queen
     def get_conflicts_per_queen(self, q_locations):
         list_temp = []
 
@@ -50,7 +50,7 @@ class solve_n_queen:
         #sorted(list_temp, key=lambda x:x[1], reverse=True)
         return list_temp
 
-    #give new array that where two elements in the array are swapped
+    #swap two rows; swap two elements in the array
     def swap_rows(self, old_q_locations, a, b):
         q_locations = old_q_locations.copy()
         t = q_locations[b]
@@ -62,8 +62,10 @@ class solve_n_queen:
     def is_solved(self):
         is_s = True
         self.queens_conflicts = self.get_conflicts_per_queen(self.queen_locations)
+        #check that every queen has zero conflicts
         for queen in self.queens_conflicts:
             if(queen > 0):
+                #found a queen with conflicts; board is not solution
                 is_s = False
                 break
         return is_s
@@ -76,7 +78,7 @@ class solve_n_queen:
     #get n path(s) to neighbor(s)
     def get_paths_to_neighbors(self, n_neighnors = None):
         if(n_neighnors == None or n_neighnors == self.max_neighbors):
-            return self.get_all_paths_to_neighbors()
+            return self.all_paths
         if(n_neighnors > self.max_neighbors):
             print("(get_paths_to_neighbors) Warning: asked for more than neighbors than is possible.")
 
@@ -88,14 +90,14 @@ class solve_n_queen:
         for single_path in self.get_paths_to_neighbors(n_neighbors):
             neighbor_nodes.append(self.swap_rows(self.queen_locations, single_path[0], single_path[1]))
         return neighbor_nodes
-
+    
+    #Like greedy descent, choose n random neighbors and select the best
     def solve_by_greedy_descent(self):
         while(not self.is_solved()):
-            # print(sum(self.queens_conflicts))
-
-            # n_neighbors = int(math.sqrt(self.max_neighbors)+2)
+            #the number of neighbors to check/compare against
             n_neighbors = self.N_queens
 
+            #create array of neighbor nodes
             neighbor_nodes = self.get_neighbor_nodes(n_neighbors)
 
             #sorts neighbors_nodes by the total number of conflicts
@@ -104,21 +106,25 @@ class solve_n_queen:
             #Make self whatever the best neighbor_node is
             self.queen_locations = neighbor_nodes[0]
     
+    #true random step
     def solve_by_random_neighbor(self):
         while(not self.is_solved()):
-            row_pair = self.get_random_neighbor()
+            random_pair= random.sample(range(0,self.N_queens),k=2)
+            row_pair = [random_pair[0],random_pair[1]]
             #print(row_pair)
             print(sum(self.queens_conflicts))
             self.queen_locations = self.swap_rows(self.queen_locations,row_pair[0],row_pair[1])
             #print("-----")
             #case.print_board()
 
-#-------------------
+#---------main----------
 N_samples = 1
 print("Testing with %d samples" % (N_samples))
 #[4,8,16,64,100,1000,10000]
 for N_queen in [4,8,16,64,100,1000,10000]:
+    #try different N Queen 
     start = time.time()
+    #loop to get multiple samples
     for sample in range(N_samples):
         case = solve_n_queen(N_queen)
         case.solve_by_greedy_descent()
